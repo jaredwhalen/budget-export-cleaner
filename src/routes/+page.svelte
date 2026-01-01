@@ -43,20 +43,23 @@
 			} 
 			// Truist format
 			else if (headers.includes('Transaction Type')) {
+				// Support both "Description" and "Full description" column names
+				const descriptionColumn = headers.includes('Full description') ? 'Full description' : 'Description';
+				
 				if (row['Transaction Type'] === 'Debit') {
 					// Expense - extract from parentheses format like ($100.00)
 					let amountStr = row.Amount.replace('$', '').replace('(', '').replace(')', '');
 					const amount = Math.abs(parseFloat(amountStr));
 									
 					// Only add if it's not a payment to another account
-					if (!row.Description.includes('EPAY CHASE CREDIT CRD') && !row.Description.includes('PAYMENT AMZ_STORECRD')) {
+					if (!row[descriptionColumn].includes('EPAY CHASE CREDIT CRD') && !row[descriptionColumn].includes('PAYMENT AMZ_STORECRD')) {
 						expenses.push({
 							date: row['Transaction Date'],
 							amount: `$${amount.toFixed(2)}`,
-							description: row.Description,
+							description: row[descriptionColumn],
 							account: account,
 							originalAmount: amount,
-							originalDescription: row.Description
+							originalDescription: row[descriptionColumn]
 						});
 					}
 				} else if (row['Transaction Type'] === 'Credit') {
@@ -67,7 +70,7 @@
 					income.push({
 						date: row['Transaction Date'],
 						amount: `$${amount.toFixed(2)}`,
-						description: row.Description,
+						description: row[descriptionColumn],
 						category: 'Paycheck'
 					});
 				}
